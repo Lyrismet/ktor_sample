@@ -10,7 +10,16 @@ val namesStorage = mutableListOf<String>()
 fun Application.configureRouting() {
     routing {
         get("/") {
-            call.respondText("Hello World!")
+            call.respondText("""
+        Добро пожаловать на мой Ktor API!
+        
+        Доступные методы:
+        1. GET    /names/{id} - Узнать какое имя по этому индексу (напр. /names/0)
+        2. POST   /names      - Добавить имя (текст в Body)
+        3. PUT    /names/{id} - Изменить имя по индексу (текст в Body)
+        4. DELETE /names/{id} - Удалить имя по индексу
+        5. GET    /names      - Посмотреть весь список имен
+    """)
         }
         get("/names"){
             call.respond(namesStorage)
