@@ -1,0 +1,39 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Names CRUD API",
+    "description": "Учебный API для управления списком имен",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/names": {
+      "get": {
+        "summary": "Получить весь список имен",
+        "responses": {
+          "200": { "description": "Успешный возврат списка" }
+        }
+      },
+      "post": {
+        "summary": "Добавить новое имя",
+        "requestBody": {
+          "content": { "text/plain": { "schema": { "type": "string", "example": "Masha" } } }
+        },
+        "responses": {
+          "201": { "description": "Имя успешно добавлено" }
+        }
+      }
+    },
+    "/names/{nameID}": {
+      "get": {
+        "summary": "Получить приветствие по ID",
+        "parameters": [
+          { "name": "nameID", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Hello сообщение" },
+          "404": { "description": "Имя не найдено" }
+        }
+      }
+    }
+  }
+}
