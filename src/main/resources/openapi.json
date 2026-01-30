@@ -5,33 +5,128 @@
     "description": "Учебный API для управления списком имен",
     "version": "1.0.0"
   },
+  "servers": [
+    {
+      "url": "https://ktor-sample-axxo.onrender.com/",
+      "description": "Сервер размещен на Render"
+    }
+  ],
   "paths": {
     "/names": {
       "get": {
-        "summary": "Получить весь список имен",
+        "summary": "Получить список всех имен",
         "responses": {
-          "200": { "description": "Успешный возврат списка" }
+          "200": {
+            "description": "Список имен успешно получен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NameItem"
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "post": {
         "summary": "Добавить новое имя",
         "requestBody": {
-          "content": { "text/plain": { "schema": { "type": "string", "example": "Masha" } } }
+          "required": true,
+          "content": {
+            "text/plain": {
+              "schema": {
+                "type": "string",
+                "example": "Иван"
+              }
+            }
+          }
         },
         "responses": {
-          "201": { "description": "Имя успешно добавлено" }
+          "201": {
+            "description": "Имя успешно создано",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NameItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Имя не может быть пустым"
+          }
         }
       }
     },
-    "/names/{nameID}": {
-      "get": {
-        "summary": "Получить приветствие по ID",
-        "parameters": [
-          { "name": "nameID", "in": "path", "required": true, "schema": { "type": "integer" } }
-        ],
+    "/names/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "put": {
+        "summary": "Обновить имя по ID",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "text/plain": {
+              "schema": {
+                "type": "string",
+                "example": "Алексей"
+              }
+            }
+          }
+        },
         "responses": {
-          "200": { "description": "Hello сообщение" },
-          "404": { "description": "Имя не найдено" }
+          "200": {
+            "description": "Объект обновлен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NameItem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Объект с таким ID не найден"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Удалить имя по ID",
+        "responses": {
+          "200": {
+            "description": "Объект успешно удален"
+          },
+          "404": {
+            "description": "Объект не найден"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "NameItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Иван"
+          }
         }
       }
     }

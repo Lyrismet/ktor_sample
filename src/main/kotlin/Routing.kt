@@ -6,65 +6,63 @@ import io.ktor.server.plugins.swagger.swaggerUI
 import io.ktor.server.request.receiveText
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.Serializable
+import io.ktor.server.plugins.openapi.*
 
-val namesStorage = mutableListOf<String>()
+@Serializable
+data class NameItem(
+    val id: Int,
+    val name: String
+)
+
+val namesStorage = mutableListOf<NameItem>()
+var lastId = 0;
 fun Application.configureRouting() {
     routing {
         swaggerUI(path = "swagger", swaggerFile = "openapi.json")
         get("/") {
-            call.respondText("""
-        Добро пожаловать на мой Ktor API!
-        
-        Доступные методы:
-        1. GET    /names/{id} - Узнать какое имя по этому индексу (напр. /names/0)
-        2. POST   /names      - Добавить имя (текст в Body)
-        3. PUT    /names/{id} - Изменить имя по индексу (текст в Body)
-        4. DELETE /names/{id} - Удалить имя по индексу
-        5. GET    /names      - Посмотреть весь список имен
-    """)
+            call.respondText("Добавьте '/swagger' чтобы увидеть документацию")
         }
-        get("/names"){
+
+        get("/names") {
             call.respond(namesStorage)
         }
-        post("/names"){
-            val name = call.receiveText()
 
-            if (name.isNotBlank()){
-                namesStorage.add(name)
-                call.respondText("Имя '$name' добавлено!", status = HttpStatusCode.Created )
+        post("/names") {
+            val nameText = call.receiveText()
+            if (nameText.isNotBlank()) {
+                val newItem = NameItem(id = lastId++, name = nameText)
+                namesStorage.add(newItem)
+                call.respond(HttpStatusCode.Created, newItem)
             } else {
-                call.respondText("Имя не может быть пустым!", status = HttpStatusCode.BadRequest)
+                call.respond(HttpStatusCode.BadRequest, "Имя не может быть пустым")
             }
         }
-        get("/names/{nameID}"){
-            val index = call.parameters["nameID"]?.toIntOrNull()
-            if (index != null && index >= 0 && index < namesStorage.size){
-                val name = namesStorage[index]
-                call.respondText("О, это имя '$name'!", status = HttpStatusCode.OK)
-            } else {
-                call.respondText("Имени с таким индексом нет.", status = HttpStatusCode.NotFound)
-            }
-        }
-        put("/names/{nameID}") {
-            val index = call.parameters["nameID"]?.toIntOrNull()
+
+        put("/names/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
             val newName = call.receiveText()
 
-            if (index != null && index >= 0 && index < namesStorage.size){
-                val oldName = namesStorage[index]
-                namesStorage[index] = newName
-                call.respondText("Имя '$oldName' заменено на '$newName'!", status = HttpStatusCode.OK)
+            val item = namesStorage.find { it.id == id }
+
+            if (item != null && newName.isNotBlank()) {
+                val updatedItem = item.copy(name = newName)
+                val index = namesStorage.indexOf(item)
+                namesStorage[index] = updatedItem
+
+                call.respond(HttpStatusCode.OK, updatedItem)
             } else {
-                call.respondText("Имени с таким индексом нет.", status = HttpStatusCode.NotFound)
+                call.respond(HttpStatusCode.NotFound, "Объект с id $id не найден")
             }
         }
-        delete("/names/{nameID}"){
-            val index = call.parameters["nameID"]?.toIntOrNull()
 
-            if (index != null && index >= 0 && index < namesStorage.size) {
-                val removedName = namesStorage.removeAt(index)
-                call.respondText("Имя '$removedName' удалено!", status = HttpStatusCode.OK)
+        delete("/names/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
+
+            if (namesStorage.removeIf { it.id == id }) {
+                call.respondText("Объект с id $id удален", status = HttpStatusCode.OK)
             } else {
-                call.respondText("Имени с таким индексом нет.", status = HttpStatusCode.NotFound)
+                call.respond(HttpStatusCode.NotFound, "Нечего удалять")
             }
         }
     }
