@@ -7,7 +7,6 @@ import io.ktor.server.request.receiveText
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
-import io.ktor.server.plugins.openapi.*
 
 @Serializable
 data class NameItem(
@@ -42,7 +41,6 @@ fun Application.configureRouting() {
         put("/names/{id}") {
             val id = call.parameters["id"]?.toIntOrNull()
             val newName = call.receiveText()
-
             val item = namesStorage.find { it.id == id }
 
             if (item != null && newName.isNotBlank()) {
