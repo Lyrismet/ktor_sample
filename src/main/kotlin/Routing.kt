@@ -58,7 +58,7 @@ fun Application.configureRouting() {
             val id = call.parameters["id"]?.toIntOrNull()
 
             if (namesStorage.removeIf { it.id == id }) {
-                call.respondText("Объект с id $id удален", status = HttpStatusCode.OK)
+                call.respondText("Объект с id $id и именем ${namesStorage.find { it.id == id }?.name} успешно удален", status = HttpStatusCode.OK)
             } else {
                 call.respond(HttpStatusCode.NotFound, "Нечего удалять")
             }
