@@ -1,20 +1,58 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Names CRUD API",
-    "description": "Учебный API для управления списком имен",
+    "title": "Names CRUD API with JWT",
+    "description": "Учебный API с авторизацией через JWT",
     "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "https://ktor-sample-axxo.onrender.com/",
-      "description": "Сервер размещен на Render"
+      "url": "http://localhost:8080",
+      "description": "Локальный сервер"
     }
   ],
   "paths": {
+    "/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Авторизация и получение токенов",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": { "type": "string", "example": "admin" },
+                  "password": { "type": "string", "example": "123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Успешный вход",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": { "type": "string" },
+                    "refreshToken": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Неверные учетные данные" }
+        }
+      }
+    },
     "/names": {
       "get": {
         "summary": "Получить список всех имен",
+        "security": [{ "bearerAuth": [] }],
         "responses": {
           "200": {
             "description": "Список имен успешно получен",
@@ -22,25 +60,22 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/NameItem"
-                  }
+                  "items": { "$ref": "#/components/schemas/NameItem" }
                 }
               }
             }
-          }
+          },
+          "401": { "description": "Требуется авторизация" }
         }
       },
       "post": {
         "summary": "Добавить новое имя",
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
             "text/plain": {
-              "schema": {
-                "type": "string",
-                "example": "Иван"
-              }
+              "schema": { "type": "string", "example": "Иван" }
             }
           }
         },
@@ -49,15 +84,11 @@
             "description": "Имя успешно создано",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NameItem"
-                }
+                "schema": { "$ref": "#/components/schemas/NameItem" }
               }
             }
           },
-          "400": {
-            "description": "Имя не может быть пустым"
-          }
+          "401": { "description": "Требуется авторизация" }
         }
       }
     },
@@ -67,66 +98,49 @@
           "name": "id",
           "in": "path",
           "required": true,
-          "schema": {
-            "type": "integer"
-          }
+          "schema": { "type": "integer" }
         }
       ],
       "put": {
         "summary": "Обновить имя по ID",
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
             "text/plain": {
-              "schema": {
-                "type": "string",
-                "example": "Алексей"
-              }
+              "schema": { "type": "string", "example": "Алексей" }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Объект обновлен",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NameItem"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Объект с таким ID не найден"
-          }
+          "200": { "description": "Объект обновлен" },
+          "401": { "description": "Требуется авторизация" }
         }
       },
       "delete": {
         "summary": "Удалить имя по ID",
+        "security": [{ "bearerAuth": [] }],
         "responses": {
-          "200": {
-            "description": "Объект успешно удален"
-          },
-          "404": {
-            "description": "Объект не найден"
-          }
+          "200": { "description": "Объект успешно удален" },
+          "401": { "description": "Требуется авторизация" }
         }
       }
     }
   },
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
     "schemas": {
       "NameItem": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer",
-            "example": 1
-          },
-          "name": {
-            "type": "string",
-            "example": "Иван"
-          }
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Иван" }
         }
       }
     }
